@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate E-Commerce Pro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;transition:0.3s;}
+body{background:linear-gradient(135deg,#667eea,#764ba2);color:#333;overflow-x:hidden;transition:0.5s;}
+body.dark{background:linear-gradient(135deg,#141e30,#243b55);color:white;}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px;background:white;border-bottom:3px solid #00c6ff;position:sticky;top:0;z-index:10;transition:0.3s;}
+body.dark header{background:#1a1a2e;border-bottom-color:#00f7ff;color:white;}
+header h1{color:#667eea;cursor:pointer;font-weight:bold;}
+body.dark header h1{color:#00f7ff;}
+header button{padding:10px 15px;background:#00c6ff;color:white;border:none;border-radius:5px;cursor:pointer;transition:0.3s;}
+body.dark header button{background:#00f7ff;color:#141e30;}
+.toggle-btn{position:fixed;top:20px;right:20px;cursor:pointer;padding:10px;background:#00c6ff;color:white;border:none;border-radius:5px;z-index:100;transition:0.3s;}
+body.dark .toggle-btn{background:#00f7ff;color:#141e30;}
+.container{max-width:1200px;margin:20px auto;display:flex;flex-wrap:wrap;justify-content:center;gap:20px;transition:0.3s;}
+.card{background:white;width:250px;border-radius:15px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.3);cursor:pointer;transition:0.4s;}
+body.dark .card{background:#1f1f3d;color:white;box-shadow:0 10px 30px rgba(0,0,0,0.7);}
+.card:hover{transform:scale(1.05);box-shadow:0 15px 40px rgba(0,0,0,0.5);}
+.card img{width:100%;height:200px;object-fit:cover;}
+.card-content{padding:15px;text-align:center;}
+.card-content h3{margin-bottom:10px;color:#333;}
+body.dark .card-content h3{color:#00f7ff;}
+.card-content p{font-size:14px;margin-bottom:10px;}
+.card-content b{display:block;margin-bottom:10px;color:#667eea;}
+body.dark .card-content b{color:#00f7ff;}
+button.add-btn{padding:8px 12px;background:linear-gradient(90deg,#00c6ff,#0072ff);border:none;color:white;border-radius:5px;cursor:pointer;transition:0.3s;}
+button.add-btn:hover{transform:scale(1.1);}
+.cart-sidebar{position:fixed;top:0;right:-400px;width:350px;height:100%;background:white;box-shadow:-5px 0 25px rgba(0,0,0,0.4);padding:20px;transition:0.4s;z-index:50;overflow-y:auto;}
+body.dark .cart-sidebar{background:#1f1f3d;color:white;}
+.cart-sidebar h2{text-align:center;margin-bottom:20px;}
+.cart-item{display:flex;justify-content:space-between;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #ddd;align-items:center;}
+body.dark .cart-item{border-color:#333;}
+button.remove-btn{background:#ff4d4d;color:white;border:none;padding:5px 10px;border-radius:5px;cursor:pointer;}
+.checkout-btn{width:100%;padding:10px;background:#667eea;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:10px;}
+body.dark .checkout-btn{background:#00f7ff;color:#141e30;}
+.category-bar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:10px;}
+.category-btn{padding:8px 12px;background:#00c6ff;color:white;border:none;border-radius:5px;cursor:pointer;transition:0.3s;}
+.category-btn:hover{transform:scale(1.05);}
+body.dark .category-btn{background:#00f7ff;color:#141e30;}
+canvas{position:fixed;top:0;left:0;pointer-events:none;width:100%;height:100%;z-index:100;}
+input#search{width:90%;margin:10px auto;display:block;padding:10px;border-radius:8px;border:1px solid #ddd;transition:0.3s;}
+body.dark input#search{background:#333;color:white;border:1px solid #555;}
+.hidden{display:none;}
+@media(max-width:600px){.card{width:90%;}.cart-sidebar{width:90%;}}
+</style>
+</head>
+<body>
+
+<button class="toggle-btn" onclick="toggleDark()">🌙 Dark Mode</button>
+<canvas id="confetti"></canvas>
+
+<header>
+<h1 onclick="showProducts()">MyStore Pro</h1>
+<button onclick="toggleCart()">Cart (<span id="cart-count">0</span>)</button>
+</header>
+
+<div class="category-bar" id="categories"></div>
+<input type="text" id="search" placeholder="Search products..." onkeyup="searchProducts()">
+
+<div id="products" class="container"></div>
+
+<div class="cart-sidebar" id="cart-sidebar">
+<h2>Your Cart</h2>
+<div id="cart-items"></div>
+<h3>Total: $<span id="cart-total">0</span></h3>
+<button class="checkout-btn" onclick="showCheckout()">Checkout</button>
+<button class="checkout-btn" onclick="toggleCart()">Close</button>
+</div>
+
+<div class="checkout-container hidden" id="checkout">
+<h2>Checkout</h2>
+<input type="text" id="name" placeholder="Full Name">
+<input type="text" id="address" placeholder="Address">
+<h3>Total: $<span id="checkout-total">0</span></h3>
+<button class="checkout-btn" onclick="completeOrder()">Pay Now</button>
+<button class="checkout-btn" onclick="closeCheckout()">Back</button>
+</div>
+
+<script>
+// Sample products
+let productsData=[
+{name:"Wireless Headphones",desc:"Noise cancelling, Bluetooth",price:99,category:"Audio",image:"https://picsum.photos/250/200?random=1"},
+{name:"Smart Watch",desc:"Track fitness & notifications",price:149,category:"Wearables",image:"https://picsum.photos/250/200?random=2"},
+{name:"Gaming Mouse",desc:"RGB, High DPI",price:49,category:"Accessories",image:"https://picsum.photos/250/200?random=3"},
+{name:"Laptop Backpack",desc:"Waterproof and spacious",price:79,category:"Bags",image:"https://picsum.photos/250/200?random=4"},
+{name:"Sunglasses",desc:"UV Protection, Stylish",price:29,category:"Fashion",image:"https://picsum.photos/250/200?random=5"},
+{name:"Bluetooth Speaker",desc:"Portable, powerful sound",price:59,category:"Audio",image:"https://picsum.photos/250/200?random=6"}
+];
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+
+function updateCartCount(){document.getElementById("cart-count").innerText=cart.length;}
+function toggleDark(){document.body.classList.toggle("dark");}
+function toggleCart(){let cs=document.getElementById("cart-sidebar");cs.style.right=(cs.style.right==='0px')?' -400px':'0px';updateCart();}
+function closeCheckout(){document.getElementById("checkout").classList.add("hidden");showProducts();}
+function showProducts(){document.getElementById("products").classList.remove("hidden");document.getElementById("checkout").classList.add("hidden");renderProducts(productsData);}
+function renderProducts(data){const container=document.getElementById("products");container.innerHTML="";data.forEach((p,i)=>{const card=document.createElement("div");card.className="card";card.innerHTML=`<img src="${p.image}" alt="${p.name}"><div class="card-content"><h3>${p.name}</h3><p>${p.desc}</p><b>$${p.price}</b><button class="add-btn" onclick="addToCart(${i})">Add to Cart</button></div>`;container.appendChild(card);});}
+function addToCart(index){cart.push(productsData[index]);localStorage.setItem("cart",JSON.stringify(cart));updateCart();alert(productsData[index].name+" added!");}
+function updateCart(){const container=document.getElementById("cart-items");container.innerHTML="";let total=0;cart.forEach((item,i)=>{total+=item.price;const div=document.createElement("div");div.className="cart-item";div.innerHTML=`<span>${item.name} - $${item.price}</span><button class="remove-btn" onclick="removeFromCart(${i})">Remove</button>`;container.appendChild(div);});document.getElementById("cart-total").innerText=total.toFixed(2);document.getElementById("checkout-total").innerText=total.toFixed(2);updateCartCount();}
+function removeFromCart(i){cart.splice(i,1);localStorage.setItem("cart",JSON.stringify(cart));updateCart();}
+function showCheckout(){document.getElementById("checkout").classList.remove("hidden");toggleCart();}
+function completeOrder(){const name=document.getElementById("name").value;const address=document.getElementById("address").value;if(!name||!address){alert("Fill all fields");return;}alert(`Thank you ${name}! Order $${cart.reduce((a,p)=>a+p.price,0).toFixed(2)} placed!`);cart=[];localStorage.setItem("cart",JSON.stringify(cart));updateCart();closeCheckout();launchConfetti();}
+function launchConfetti(){const canvas=document.getElementById("confetti");const ctx=canvas.getContext("2d");canvas.width=window.innerWidth;canvas.height=window.innerHeight;let pieces=[];for(let i=0;i<200;i++){pieces.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*6+4,d:Math.random()*150});}let anim=setInterval(()=>{ctx.clearRect(0,0,canvas.width,canvas.height);pieces.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`hsl(${Math.random()*360},100%,50%)`;ctx.fill();p.y+=Math.random()*5;if(p.y>canvas.height)p.y=0;});},20);setTimeout(()=>clearInterval(anim),3000);}
+function searchProducts(){const query=document.getElementById("search").value.toLowerCase();renderProducts(productsData.filter(p=>p.name.toLowerCase().includes(query)||p.desc.toLowerCase().includes(query)));}
+// Categories
+const categories=[...new Set(productsData.map(p=>p.category))];const catContainer=document.getElementById("categories");categories.forEach(c=>{const btn=document.createElement("button");btn.className="category-btn";btn.innerText=c;btn.onclick=()=>renderProducts(productsData.filter(p=>p.category===c));catContainer.appendChild(btn);});
+const allBtn=document.createElement("button");allBtn.className="category-btn";allBtn.innerText="All";allBtn.onclick=()=>renderProducts(productsData);catContainer.insertBefore(allBtn,catContainer.firstChild);
+// Initialize
+showProducts();updateCartCount();
+</script>
+
+</body>
+</html>
